@@ -1,0 +1,11 @@
+
+<% statusHelper = (collection,item) =>{ %>
+    <%  if(item.status === "active"){ %>
+          <a href="<%=systemConfig.prefixAdmin%>/<%=collection%>/change-status/<%= item.status %>/<%= item.id %>">               
+              <span class="label label-success"> <%= item.status %> </span></a>  
+      <%} else {%>
+        <a href="<%=systemConfig.prefixAdmin%>/<%=collection%>/change-status/<%= item.status %>/<%= item.id %>">               
+              <span class="label label-warning"> <%= item.status %> </span></a>  
+     <% } %>
+     
+  <% } %>

@@ -1,0 +1,10 @@
+<% filterStatus = (collection, statusFilter, keywordFilter) =>{ 
+   statusFilter.forEach((status, index)=>{ 
+        let link = systemConfig.prefixAdmin + "/" + collection + "/" + status.value; 
+       if(keywordFilter !== "" && keywordFilter !==  undefined) link += "?keyword=" + keywordFilter; 
+%> 
+        <a class="btn m-b-sm btn-<%=status.class%> btn-sm" href="<%= link %>">
+            <%= status.name%> ( <%= status.count%> )
+        </a>
+     <% })
+        } %>
