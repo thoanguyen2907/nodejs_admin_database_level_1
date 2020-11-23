@@ -1,4 +1,4 @@
-const ItemsModel = require(__path_schemas + "items"); 
+const ItemsModel = require(__path_schemas + "users"); 
 
 
 module.exports={
@@ -61,14 +61,16 @@ module.exports={
         }
     },
     saveItem : (id, item, options = null) => {
-        let content = item.content; 
+        
+        let group =  {id: item.group, name: item.group_hidden }; 
+        
         if(options.task == "add"){
             let created = {
                 user_id: 1, 
                 user_name: "Thoa Nguyen admin", 
                 time: Date.now()
               }         
-              item = {...item, created: created, content}; 
+              item = {...item, created, group};
             return ItemsModel(item).save(); 
         } 
         if(options.task == "edit"){
@@ -77,7 +79,7 @@ module.exports={
                 user_name: "Truc Nguyen admin", 
                 time: Date.now()
               }
-              item = {...item, modified: modified, content}; 
+              item = {...item, modified, group}; 
               return ItemsModel.updateOne({_id: id}, item, {new: true})
         }
     }

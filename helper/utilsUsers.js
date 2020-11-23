@@ -1,7 +1,7 @@
 
 
 const UsersModel = require(__path_schemas + "users"); 
-let createFilterStatus = async (currentStatus) => {
+let createFilterStatus = async (params) => {
     let statusFilter = [
         {name: "All", value: "all", count: 3, class: "default"}, 
         {name: "Active", value: "active", count: 2,  class: "default"}, 
@@ -11,7 +11,7 @@ let createFilterStatus = async (currentStatus) => {
         for (let i = 0; i < statusFilter.length; i++){
         let item = statusFilter[i]; 
         objectFilter = item.value === "all"? {} : {"status": item.value}; 
-        item["class"] = item.value == currentStatus ? "success" : "default"; 
+        item["class"] = item.value == params.currentStatus ? "success" : "default"; 
             await UsersModel.countDocuments(objectFilter)
             .then((countNumber)=>{
               item["count"] = countNumber; 
@@ -27,21 +27,25 @@ let getParams = async (params, value, defaultValue ) => {
     }
     return  params[value]; 
 }
-let getObjectFilter = async (currentStatus, keyword, groupID) => {
+let getObjectFilter =  (params) => {
 let objectFilter = {}; 
-keyword = keyword.trim();  
- if(currentStatus === "all"){
-     if(keyword !== "" || groupID != "undefined" ) {
-        objectFilter =  {"name": new RegExp(keyword, "i"), 'group.id': groupID}
-     } else if (groupID == "undefined" || keyword === ""){
-        objectFilter  = {} 
+params["keywordFilter"] = params["keywordFilter"].trim();  
+ if(params["currentStatus"] === "all"){
+    if (params["groupID"] !== "undefined"|| params["keywordFilter"] !== "") {
+        objectFilter =  {"name": new RegExp(params["keywordFilter"], "i"), 'group.id':params["groupID"]}
+     } 
+    else  if (params["groupID"] == "undefined" || params["keywordFilter"] == "" ){
+        objectFilter  = {}; 
      }
- } else if (currentStatus !== "all" ){
-     if(keyword !== "" || groupID != "undefined" ){
-        objectFilter = {"status": currentStatus, "name": new RegExp(keyword, "i"), 'group.id': groupID }
-     } else if(keyword == "" || groupID == "undefined") {
-        objectFilter = {"status": currentStatus}
-     }
+
+ } else if (params["currentStatus"] !== "all" ){
+    if(params["keywordFilter"]!== "" || params["groupID"]!= "undefined" ){
+        objectFilter = {"status": params["currentStatus"], "name": new RegExp(params["keywordFilter"], "i"), 'group.id': params["groupID"] }
+     } 
+    else if(params["keywordFilter"] == "" || params["groupID"] == "undefined") {
+        objectFilter = {"status": params["currentStatus"]}
+     } 
+      
  } else {
     objectFilter  = {} 
  }

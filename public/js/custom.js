@@ -146,7 +146,7 @@ if(selectFilterGroup){
     let path = window.location.pathname.split("/"); 
     let selectedGroupVal = selectFilterGroup.value; 
     let linkRedirect = "/" + path[1] + "/" + path[2] + "/filter-group/" +  selectedGroupVal; 
-      window.location.pathname =   linkRedirect;
+    window.location.pathname =   linkRedirect;
     }); 
 }
 

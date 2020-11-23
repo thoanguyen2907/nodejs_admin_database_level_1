@@ -17,12 +17,12 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                         <div class="panel-body">
                             <div class="row">
                                 <div class="status-list col-sm-6 pl0">
-                                    <%-  filterStatus("items", statusFilter, keywordFilter) %>
+                                    <%-  filterStatus("items", statusFilter, params.keywordFilter) %>
                                 </div>
                                 <div class="col-sm-6">
-                                    <form action="<%=linkPrefix%><%=currentStatus%>" method="GET">
+                                    <form action="<%=linkPrefix%><%=params.currentStatus%>" method="GET">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" name="keyword" placeholder="Search for..." value="<%=keywordFilter%>">
+                                            <input type="text" class="form-control" name="keyword" placeholder="Search for..." value="<%=params.keywordFilter%>">
                                             <input type="hidden" value="all">
     
                                             <span class="input-group-btn">
@@ -59,9 +59,9 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                                     <input type="checkbox" class="cbAll" />
                                                 </th>
                                                 <th>#</th>                                            
-                                                    <%- sortHelper(collection, "Name", "name", sortField, sortType) %>
-                                                    <%- sortHelper(collection, "Status", "status", sortField, sortType) %>
-                                                    <%- sortHelper(collection, "Ordering", "ordering", sortField, sortType) %>
+                                                    <%- sortHelper(collection, "Name", "name", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Status", "status", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Ordering", "ordering", params.sortField, params.sortType) %>
                                                 <th><i class="fa fa-sort"></i> Created at</th>
                                                 <th><i class="fa fa-sort"></i> Modified at</th>
                                                 <th>Action</th>

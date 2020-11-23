@@ -1,6 +1,4 @@
-const ItemsModel = require(__path_schemas + "items"); 
-
-
+const ItemsModel = require(__path_schemas + "groups"); 
 module.exports={
     listItems:   (objectFilter, params, options = null) => {
         let sort    = {};
@@ -80,5 +78,20 @@ module.exports={
               item = {...item, modified: modified, content}; 
               return ItemsModel.updateOne({_id: id}, item, {new: true})
         }
+    },
+    changeGroupACP: (currentGroup, currentID) =>{
+        currentGroup = currentGroup === "yes"? "no": "yes"; 
+        let data = {
+          group_acp: currentGroup, 
+          modified: {
+            user_id: 2, 
+            user_name: "Truc Nguyen admin", 
+            time: Date.now()
+          }
+        }
+        return ItemsModel.updateOne({_id: currentID}, data,  {new: true})
+    }, 
+    listItemsInSelectbox: () => {
+        return ItemsModel.find({}, {_id: 1, name: 1}); 
     }
 }

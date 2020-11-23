@@ -21,9 +21,10 @@ router.get('/form(/:id)?', async (req, res, next) =>  {
   if(currentId === undefined || currentId === ""){
     res.render(`${folderView}add`, { title: 'Items Management-Add', item: itemDefault, errors});
   } else {
-    await  ItemsModel.findById(currentId, async (err, itemEdit)=>{
+    await  ItemsModel.getItem(currentId).then((itemEdit)=>{
       res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors });
-     })   }
+    }); 
+ }
 });
 router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
   let errors =  validationResult(req); 
@@ -35,14 +36,7 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
     res.render(`${folderView}add`, { title: 'Items Management - Add', item: item,errors });
      return 
    } else {
-    let created = {
-      user_id: 1, 
-      user_name: "Thoa Nguyen admin", 
-      time: Date.now()
-    }
-    let content = item.content; 
-    item = {...item, created: created, content}; 
-  await new ItemsModel(item).save((error, result)=>{
+  await ItemsModel.saveItem(id, item, {task: "add"}).then(()=>{
     //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
      req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
      res.redirect(`${linkIndex}`);
@@ -53,18 +47,11 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
    if(errors.length > 0) {
     res.render(`${folderView}add`, { title: 'Items Management - Edit', item: item,errors });
     return 
-   } else {
-    let modified = {
-      user_id: 2, 
-      user_name: "Truc Nguyen admin", 
-      time: Date.now()
-    }
-    let content = item.content;
-    item = {...item, modified: modified, content}; 
-  await ItemsModel.updateOne({_id: id}, item, {new: true})
-  .then( async (result)=>{ 
+   } else {  
+  await ItemsModel.saveItem(id, item,{task: "edit"})
+  .then((result)=>{ 
      req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`);
+     res.redirect(`${linkIndex}`)
   });
 };
    }
@@ -72,43 +59,28 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
 
 router.get('(/:status)?', async (req, res, next)  => {
 let params = {}; 
-let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
-let statusFilter =  await utilHelper.createFilterStatus(currentStatus); 
-let keywordFilter = await utilHelper.getParams(req.query, "keyword", "");
-let objectFilter =  await utilHelper.getObjectFilter(currentStatus, keywordFilter); 
-let  sortField = await utilHelper.getParams(req.session, "sortField", "ordering");
-let  sortType =  await utilHelper.getParams(req.session, "sortType", "desc");
-let sort    = {};
-sort[sortField] = sortType; 
-  await ItemsModel
-          .find(objectFilter)
-          .sort(sort)
+params.currentStatus = await utilHelper.getParams(req.params, "status", "all");  
+let statusFilter =  await utilHelper.createFilterStatus(params); 
+params.keywordFilter = await utilHelper.getParams(req.query, "keyword", "");
+params.sortField = await utilHelper.getParams(req.session, "sortField", "ordering");
+params.sortType =  await utilHelper.getParams(req.session, "sortType", "desc");
+let objectFilter =  await utilHelper.getObjectFilter(params);
+
+  await ItemsModel.listItems(objectFilter, params)         
           .then((items)=>{
           res.render(`${folderView}list`, { title: 'Items Management List', 
           items: items,
           statusFilter, 
-          currentStatus,
-          keywordFilter,
-          sortField,
-          sortType });
-
-           
+          params         
+        });       
 });
 });
 
 //change multi status 
-    router.post('/change-status/:status', async (req, res, next)  => {
+  router.post('/change-status/:status', async (req, res, next)  => {
   let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
   let idArray = req.body.cid;
-  let data = {
-    status: currentStatus, 
-    modified: {
-      user_id: 2, 
-      user_name: "Truc Nguyen admin", 
-      time: Date.now()
-    }
-  }
-      await ItemsModel.updateMany({_id: {$in: idArray}}, data )
+  await ItemsModel.changeStatus(idArray, currentStatus, {task: "update-multi"})
       .then((result)=>{
         req.flash("success", util.format(notify.CHANGE_MULTI_ITEMS_SUCCESS, result.n), false); 
         res.redirect(`${linkIndex}`);   
@@ -120,16 +92,7 @@ sort[sortField] = sortType;
     router.get('/change-status/:status/:id/', async (req, res, next)  => {
       let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
       let currentID = await utilHelper.getParams(req.params, "id", ""); 
-      currentStatus = currentStatus === "active"? "inactive" :  "active"; 
-      let data = {
-        status: currentStatus, 
-        modified: {
-          user_id: 2, 
-          user_name: "Truc Nguyen admin", 
-          time: Date.now()
-        }
-      }
-      await ItemsModel.updateOne({_id: currentID}, data,  {new: true})
+      await ItemsModel.changeStatus(currentID, currentStatus, {task: "update-one"})
       .then( (result)=>{
         req.flash("success", notify.CHANGE_STATUS_SUCCESS, false); 
           res.redirect(`${linkIndex}`);
@@ -141,9 +104,8 @@ sort[sortField] = sortType;
   
  router.get('/delete/:id/', async (req, res, next)  => {  
   let currentID = await utilHelper.getParams(req.params, "id", ""); 
-  console.log(currentID);
-  await ItemsModel.deleteOne({_id: currentID})
-  .then(async (result)=> {
+  await ItemsModel.deleteItem(currentID, {task: "delete-one"})
+  .then((result)=> {
     req.flash("success", notify.DELETE_ITEM_SUCCESS, false); 
     res.redirect(`${linkIndex}`)
   })
@@ -152,10 +114,9 @@ sort[sortField] = sortType;
   })
  }); 
 //delete nhiều phần từ 
-//change multi status 
 router.post('/delete/', async (req, res, next)  => {
   let idArray = req.body.cid
-      await ItemsModel.deleteMany({_id: {$in: idArray}})
+      await ItemsModel.deleteItem(idArray, {task: "delete-many"})
       .then((result)=>{ 
         req.flash("success", util.format(notify.DELETE_MULTI_ITEMS_SUCCESS, result.n), false); 
         res.redirect(`${linkIndex}`);
@@ -168,33 +129,12 @@ router.post('/delete/', async (req, res, next)  => {
 router.post('/change-ordering/', async  (req, res, next)  => {
   let idArray = req.body.cid
   let ordering = req.body.ordering; 
-  if(Array.isArray(idArray)){
-    idArray.forEach(async (item, index)=>{
-      let data = {
-        ordering: parseInt(ordering[index]), 
-        modified: {
-          user_id: 2, 
-          user_name: "Truc Nguyen admin", 
-          time: Date.now()
-        }
-      }
-      await ItemsModel.findByIdAndUpdate(item, data, {useFindAndModify: false});
-        req.flash("success", notify.CHANGE_ORDERING_MULTI_ITEMS_SUCCESS, result.n, false); 
-    }) 
-  } else {
-    let data = {
-      ordering: parseInt(ordering), 
-      modified: {
-        user_id: 2, 
-        user_name: "Truc Nguyen admin", 
-        time: Date.now()
-      }
-    }
-    await  ItemsModel.findByIdAndUpdate(idArray, data, {useFindAndModify: false});
-    req.flash("success", notify.CHANGE_ORDERING_SUCCESS, false); 
-  }
-  res.redirect(`${linkIndex}`);
-  }); 
+    await  ItemsModel.changeOrdering(idArray, ordering)
+    .then((result)=>{
+      req.flash("success", notify.CHANGE_ORDERING_SUCCESS, false); 
+      res.redirect(`${linkIndex}`);
+    })   
+  })
   //sort item
   router.get('/sort/:sortField/:sortType', async (req, res, next)  => {  
     req.session.sortField   = await utilHelper.getParams(req.params, "sortField", "ordering");
