@@ -28,16 +28,14 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                         </div>
                         <div class="row">
                             <div class="col-lg-6">
-                                <h1> <%= JSON.stringify(groupItems) %> </h1>
-                                <form role="form" action="<%=linkPrefix%>save/" method="POST" enctype="multipart/form-data">
+                                <h1> <%= JSON.stringify(item) %> </h1>
+                                <h1> <%= JSON.stringify("item.group.id", item.group) %> </h1>
+                                <form role="form" action="<%=linkPrefix%>save/" method="POST">
                                     <div class="form-group">
                                         <label>Name</label>
                                         <input class="form-control" name="name" value="<%=item.name%>" >
                                     </div>
-                                    <div class="form-group">
-                                        <label>File Upload</label>
-                                        <input type="file" name="my-file" class="form-control-file">
-                                      </div>
+                                 
                                     <div class="form-group">
                                         <label>Ordering</label>
                                         <input class="form-control" type="number" name="ordering" value="<%=item.ordering%>" >
@@ -53,7 +51,7 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                     <% include ./../../helper/groups-render-users%>
                                     <div class="form-group">
                                         <label>Group</label>
-                                        <%-GroupsRenderUsersHelper("group", groupItems, item.group._id)  %>
+                                        <%-GroupsRenderUsersHelper("group", groupItems, item.group.id)  %>
                                     </div> 
                                 
                                     <div class="form-group">

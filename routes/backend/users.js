@@ -16,99 +16,42 @@ const folderView = "pages/users/";
 const collection = "users"
 const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all"; 
 const arrayValidationUsers = validateHelper.validator(); 
-const uploadFile = utilHelper.uploadFile("my-file" )
-
-
-
-// router.post("/upload", async (req,res,next)=>{
-//   let errors = []; 
-//   uploadFile(req,res, (err) => {
-//     if(err){
-//       errors.push({param: "file", msg : err }); 
-//     } 
-//       res.render(`${folderView}upload`, { title:'Users Management Upload File', errors});
-//   })
-
-// })
-
-
+const uploadFile = utilHelper.uploadFile("avatar" )
 
 
 router.get('/form(/:id)?', async (req, res, next) =>  {
   let currentId = await utilHelper.getParams(req.params, "id", ""); 
-  let itemDefault = {name: "", ordering: 0, status: "novalue", content: "", group: {id: "", name: ""}, group_hidden: ""};
+  let itemDefault = {name: "", ordering: 0, status: "novalue", content: "", group: {id: "undefined", name: ""}};
   let errors = [];
   let groupItems = []; 
   await GroupsModel.listItemsInSelectbox().then((items)=>{
     groupItems = items; 
-    groupItems.unshift({_id: "novalue", name: "All Group"}); 
+    groupItems.unshift({_id: "undefined", name: "All Group"}); 
 });
   if(currentId === undefined || currentId === ""){
     res.render(`${folderView}add`, { title: 'Users Management-Add', item: itemDefault, errors, groupItems});
   } else {
-    await  UsersModel.getItem(currentId).then((itemEdit)=>{
-      res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors });
+    await  UsersModel.getItem(currentId).then(async (itemEdit)=>{
+      console.log("itemEdit", itemEdit);
+      res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors, groupItems });
     }); 
   }
 });
-// router.post('/save(/:id)?', arrayValidationUsers, (req, res, next) =>  {
-//   let errors =  validationResult(req); 
-//   errors =   Array.from(errors.errors);
-
-//   uploadFile(req,res, async (errUpload) => {
-//         if(errUpload){
-//           console.log(errUpload)
-//           errors.push({param: "file", msg : errUpload }); 
-//     } 
-//     let id =  await utilHelper.getParams(req.body, "id", "");
-//     let item = await Object.assign(req.body);
-//     let groupItems = [];
-//     await GroupsModel.listItemsInSelectbox().then((items)=>{
-//       groupItems = items; 
-//       groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
-//       console.log(groupItems)
-//      })
-  
-//    //  let groupItems = [{id: "", name: ""}]; 
-//     if(id == "" || id == undefined){
-//       if(errors.length > 0){
-//        res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
-//         return 
-//       } else {   
-//        await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
-//         console.log(item);
-//        //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
-//         req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
-//         res.redirect(`${linkIndex}`);
-//       }); }}
-//     else { 
-//       if(errors.length > 0) {
-//        res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
-//        return 
-//       } else {
-//        await UsersModel.saveItem(id, item,{task: "edit"})
-//      .then( async (result)=>{ 
-//         req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-//         res.redirect(`${linkIndex}`);
-//      });
-//    };
-//       }
-// })
-// })
-router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
+router.post('/save(/:id)?', arrayValidationUsers, (req, res, next) =>  {
   let errors =  validationResult(req); 
   errors =   Array.from(errors.errors);
+  uploadFile(req,res, async (errUpload) => {
+
     let id =  await utilHelper.getParams(req.body, "id", "");
     let item = await Object.assign(req.body);
     let groupItems = [];
     await GroupsModel.listItemsInSelectbox().then((items)=>{
       groupItems = items; 
       groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
-      console.log(groupItems)
      })
-
     if(id == "" || id == undefined){
       if(errors.length > 0){
+        console.log(errors);
        res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
         return 
       } else {   
@@ -131,7 +74,98 @@ router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
    };
       }
 })
+})
+router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
+  let errors =  validationResult(req); 
+  errors =   Array.from(errors.errors);
+    let id =  await utilHelper.getParams(req.body, "id", "");
+    let item = await Object.assign(req.body);
+    let groupItems = [];
+    await GroupsModel.listItemsInSelectbox().then((items)=>{
+      groupItems = items; 
+      groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
+      console.log(groupItems)
+     })
 
+    if(id == "" || id == undefined){
+      if(errors.length > 0){
+       res.render(`${folderView}add`, { title: 'Users Management - Add', item,errors,groupItems });
+        return 
+      } else {   
+       await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
+       //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+        req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+        res.redirect(`${linkIndex}`);
+      }); }}
+    else { 
+      if(errors.length > 0) {
+       res.render(`${folderView}add`, { title: 'Users Management - Edit', item,errors, groupItems });
+       return 
+      } else {
+       await UsersModel.saveItem(id, item,{task: "edit"})
+     .then( async (result)=>{ 
+        req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+        res.redirect(`${linkIndex}`);
+     });
+   };
+      }
+})
+
+// router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
+//   let errors =  validationResult(req); 
+//   errors =   Array.from(errors.errors); 
+//  let id =  await utilHelper.getParams(req.body, "id", "");
+//  let item = await req.body; 
+//  console.log("item", item);
+//  let groupItems = []; 
+//  await GroupsModel.listItemsInSelectbox().then((items)=>{
+//   groupItems = items; 
+//   groupItems.unshift({_id: "undefined", name: "All Group"}); 
+// });
+//  if(id === "" || id === undefined){
+//    if(errors.length > 0){
+//     res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
+//      return 
+//    } else {
+//     let created = {
+//       user_id: 1, 
+//       user_name: "Thoa Nguyen admin", 
+//       time: Date.now()
+//     }
+//     let group =  {id: item.group, name: item.group_hidden }; 
+//     item = {...item, created: created, group}; 
+//     console.log(item);
+//   await UsersModel(item).save((error, result)=>{
+//     //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+//      req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+//      res.redirect(`${linkIndex}`);
+//    }); 
+// }
+//    }
+//  else { 
+//    if(errors.length > 0) {
+//     res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
+//     return 
+//    } else {
+//     let modified = {
+//       user_id: 2, 
+//       user_name: "Truc Nguyen admin", 
+//       time: Date.now()
+//     }
+//     let group =  {id: item.group, name: item.group_hidden };  
+//     item = {...item, modified, group}; 
+//     console.log(item);
+//   await UsersModel.updateOne({_id: id}, item, {new: true})
+//   .then( async (result)=>{ 
+//      req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+//      res.redirect(`${linkIndex}`);
+//   })
+//   .catch((error)=>{
+//     console.log(error);
+//   })
+// }
+//    }
+// })
 
 router.get('(/:status)?', async (req, res, next)  => {
 let params =  {}; 

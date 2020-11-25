@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const collection = "users"; 
 const schema = new mongoose.Schema({
     name:  String, 
+    avatar:String, 
     status: String,
     ordering:   Number, 
     group: {

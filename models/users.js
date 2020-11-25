@@ -63,7 +63,7 @@ module.exports={
     saveItem : (id, item, options = null) => {
         
         let group =  {id: item.group, name: item.group_hidden }; 
-
+        console.log(group);
         if(options.task == "add"){
             let created = {
                 user_id: 1, 
@@ -71,6 +71,7 @@ module.exports={
                 time: Date.now()
               }         
               item = {...item, created, group};
+            
             return ItemsModel(item).save(); 
         } 
         if(options.task == "edit"){
