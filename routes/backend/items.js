@@ -7,15 +7,20 @@ const notify = require(__path_config+ "notify");
 const { body, validationResult } = require('express-validator');
 const flash = require('express-flash-notification');
 const  util = require("util"); 
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 /* GET users listing. */
 const ItemsModel = require(__path_models + "items"); 
 const folderView = "pages/items/"; 
 const collection = "items"
 const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all"; 
 const arrayValidationItems = validateHelper.validator(); 
+let pageTitleAdd = 'Items Management - Add'; 
+let pageTitleEdit = 'Items Management - Edit'; 
 
 router.get('/form(/:id)?', async (req, res, next) =>  {
   let currentId = await utilHelper.getParams(req.params, "id", ""); 
+
   let itemDefault = {name: "", ordering: 0, status: "novalue", content: ""};
   let errors = [];
   if(currentId === undefined || currentId === ""){
@@ -23,40 +28,49 @@ router.get('/form(/:id)?', async (req, res, next) =>  {
   } else {
     await  ItemsModel.getItem(currentId).then((itemEdit)=>{
       res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors });
-    }); 
- }
+    });}
 });
-router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
+router.post('/save/', arrayValidationItems, async (req, res, next) =>  {
+  req.body = JSON.parse(JSON.stringify(req.body)); 
   let errors =  validationResult(req); 
   errors =   Array.from(errors.errors); 
- let id =  await utilHelper.getParams(req.body, "id", "");
- let item = await req.body; 
- if(id === "" || id === undefined){
-   if(errors.length > 0){
-    res.render(`${folderView}add`, { title: 'Items Management - Add', item: item,errors });
-     return 
-   } else {
-  await ItemsModel.saveItem(id, item, {task: "add"}).then(()=>{
-    //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
-     req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`);
-   }); 
-}
-   }
- else { 
-   if(errors.length > 0) {
-    res.render(`${folderView}add`, { title: 'Items Management - Edit', item: item,errors });
+  let item = await Object.assign(req.body); 
+  let id =  await utilHelper.getParams(req.body, "id", "");
+//   let taskCurrent = (typeof id !== "" || id != "undefined"|| item != undefined)? "edit" : "add"; 
+//   if(errors.length > 0){
+//   let pageTitle = (taskCurrent == "add")? pageTitleAdd : pageTitleEdit; 
+//   res.render(`${folderView}add`, { title: pageTitle, item,errors });
+//   return; 
+//  } else {
+//    let messages = (taskCurrent == "add")? notify.ADD_ITEM_SUCCESS : notify.EDIT_ITEM_SUCCESS; 
+//    await ItemsModel.saveItem(id, item, {task: taskCurrent}).then(()=>{
+//     req.flash("success",messages , false); 
+//     res.redirect(`${linkIndex}`);
+//  }).catch((error)=>{
+//     console.log(error);
+//  })} 
+if(id === "" || id === undefined){
+  if(errors.length > 0){
+   res.render(`${folderView}add`, { title: 'Items Management - Add', item: item,errors });
     return 
-   } else {  
-  await ItemsModel.saveItem(id, item,{task: "edit"})
-  .then((result)=>{ 
+  } else {
+   await ItemsModel.saveItem(id, item, {task: "add"}).then(()=>{  
+   //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+    req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+    res.redirect(`${linkIndex}`);
+  }); 
+}}
+else { 
+  if(errors.length > 0) {
+   res.render(`${folderView}add`, { title: 'Items Management - Edit', item: item,errors });
+   return 
+  } else {
+   await  ItemsModel.saveItem(id, item,{task: "edit"}).then( (result)=>{  
      req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`)
-  });
-};
-   }
-})
-
+     res.redirect(`${linkIndex}`);
+ });};
+ }
+}); 
 router.get('(/:status)?', async (req, res, next)  => {
 let params = {}; 
 params.currentStatus = await utilHelper.getParams(req.params, "status", "all");  
@@ -65,7 +79,6 @@ params.keywordFilter = await utilHelper.getParams(req.query, "keyword", "");
 params.sortField = await utilHelper.getParams(req.session, "sortField", "ordering");
 params.sortType =  await utilHelper.getParams(req.session, "sortType", "desc");
 let objectFilter =  await utilHelper.getObjectFilter(params);
-
   await ItemsModel.listItems(objectFilter, params)         
           .then((items)=>{
           res.render(`${folderView}list`, { title: 'Items Management List', 

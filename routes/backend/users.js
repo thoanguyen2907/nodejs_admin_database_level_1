@@ -1,12 +1,14 @@
 var express = require('express');
 var router = express.Router();
+
 let systemConfig = require(__path_config+ 'system');
 let utilHelper = require(__path_helper + "utilsUsers"); 
 let validateHelper = require(__path_validates + "users"); 
 const notify = require(__path_config+ "notify"); 
 const { body, validationResult } = require('express-validator');
 const flash = require('express-flash-notification');
-const  util = require("util"); 
+const  util = require("util");
+
 /* GET users listing. */
 const UsersModel = require(__path_models + "users"); 
 const GroupsModel = require(__path_models+ "groups"); 
@@ -14,10 +16,27 @@ const folderView = "pages/users/";
 const collection = "users"
 const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all"; 
 const arrayValidationUsers = validateHelper.validator(); 
+const uploadFile = utilHelper.uploadFile("my-file" )
+
+
+
+// router.post("/upload", async (req,res,next)=>{
+//   let errors = []; 
+//   uploadFile(req,res, (err) => {
+//     if(err){
+//       errors.push({param: "file", msg : err }); 
+//     } 
+//       res.render(`${folderView}upload`, { title:'Users Management Upload File', errors});
+//   })
+
+// })
+
+
+
 
 router.get('/form(/:id)?', async (req, res, next) =>  {
   let currentId = await utilHelper.getParams(req.params, "id", ""); 
-  let itemDefault = {name: "", ordering: 0, status: "novalue", content: "", group: "", group_hidden: ""};
+  let itemDefault = {name: "", ordering: 0, status: "novalue", content: "", group: {id: "", name: ""}, group_hidden: ""};
   let errors = [];
   let groupItems = []; 
   await GroupsModel.listItemsInSelectbox().then((items)=>{
@@ -32,43 +51,87 @@ router.get('/form(/:id)?', async (req, res, next) =>  {
     }); 
   }
 });
+// router.post('/save(/:id)?', arrayValidationUsers, (req, res, next) =>  {
+//   let errors =  validationResult(req); 
+//   errors =   Array.from(errors.errors);
+
+//   uploadFile(req,res, async (errUpload) => {
+//         if(errUpload){
+//           console.log(errUpload)
+//           errors.push({param: "file", msg : errUpload }); 
+//     } 
+//     let id =  await utilHelper.getParams(req.body, "id", "");
+//     let item = await Object.assign(req.body);
+//     let groupItems = [];
+//     await GroupsModel.listItemsInSelectbox().then((items)=>{
+//       groupItems = items; 
+//       groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
+//       console.log(groupItems)
+//      })
+  
+//    //  let groupItems = [{id: "", name: ""}]; 
+//     if(id == "" || id == undefined){
+//       if(errors.length > 0){
+//        res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
+//         return 
+//       } else {   
+//        await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
+//         console.log(item);
+//        //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+//         req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+//         res.redirect(`${linkIndex}`);
+//       }); }}
+//     else { 
+//       if(errors.length > 0) {
+//        res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
+//        return 
+//       } else {
+//        await UsersModel.saveItem(id, item,{task: "edit"})
+//      .then( async (result)=>{ 
+//         req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+//         res.redirect(`${linkIndex}`);
+//      });
+//    };
+//       }
+// })
+// })
 router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
   let errors =  validationResult(req); 
-  errors =   Array.from(errors.errors); 
- let id =  await utilHelper.getParams(req.body, "id", "");
- let item = await req.body; 
- let groupItems = []; 
- await GroupsModel.listItemsInSelectbox().then((items)=>{
- groupItems = items; 
- groupItems.unshift({_id: "novalue", name: "Choose Group"}); 
+  errors =   Array.from(errors.errors);
+    let id =  await utilHelper.getParams(req.body, "id", "");
+    let item = await Object.assign(req.body);
+    let groupItems = [];
+    await GroupsModel.listItemsInSelectbox().then((items)=>{
+      groupItems = items; 
+      groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
+      console.log(groupItems)
+     })
+
+    if(id == "" || id == undefined){
+      if(errors.length > 0){
+       res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
+        return 
+      } else {   
+       await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
+        console.log(item);
+       //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+        req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+        res.redirect(`${linkIndex}`);
+      }); }}
+    else { 
+      if(errors.length > 0) {
+       res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
+       return 
+      } else {
+       await UsersModel.saveItem(id, item,{task: "edit"})
+     .then( async (result)=>{ 
+        req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+        res.redirect(`${linkIndex}`);
+     });
+   };
+      }
 })
-//  let groupItems = [{id: "", name: ""}]; 
- if(id === "" || id === undefined){
-   if(errors.length > 0){
-    res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
-     return 
-   } else {
-    
-    await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
-    //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
-     req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`);
-   }); 
-}
-   }
- else { 
-   if(errors.length > 0) {
-    res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
-    return 
-   } else {
-    await UsersModel.saveItem(id, item,{task: "edit"})
-  .then( async (result)=>{ 
-     req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`);
-  });
-};
-   }
-})
+
 
 router.get('(/:status)?', async (req, res, next)  => {
 let params =  {}; 
@@ -169,4 +232,4 @@ router.post('/change-ordering/', async  (req, res, next)  => {
    });  
 
 
-module.exports = router;
+module.exports = router; 

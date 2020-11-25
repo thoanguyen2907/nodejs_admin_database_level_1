@@ -68,8 +68,8 @@ module.exports={
                 user_name: "Thoa Nguyen admin", 
                 time: Date.now()
               }         
-              item = {...item, created: created, content}; 
-            return ItemsModel(item).save(); 
+              item = {...item, created, content}; 
+            return  ItemsModel(item).save(); 
         } 
         if(options.task == "edit"){
             let modified = {
@@ -77,7 +77,7 @@ module.exports={
                 user_name: "Truc Nguyen admin", 
                 time: Date.now()
               }
-              item = {...item, modified: modified, content}; 
+              item = {...item, modified, content}; 
               return ItemsModel.updateOne({_id: id}, item, {new: true})
         }
     }

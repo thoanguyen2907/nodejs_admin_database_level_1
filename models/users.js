@@ -63,7 +63,7 @@ module.exports={
     saveItem : (id, item, options = null) => {
         
         let group =  {id: item.group, name: item.group_hidden }; 
-        
+
         if(options.task == "add"){
             let created = {
                 user_id: 1, 
@@ -81,6 +81,13 @@ module.exports={
               }
               item = {...item, modified, group}; 
               return ItemsModel.updateOne({_id: id}, item, {new: true})
+        }
+        if(options.task == "change-group-name"){ 
+              return ItemsModel.updateMany({"group.id": item.id},{group : {
+                id: item.id, 
+                name: item.name
+            }     }, 
+            {new: true})
         }
     }
 }

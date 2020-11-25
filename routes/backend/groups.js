@@ -9,6 +9,7 @@ const flash = require('express-flash-notification');
 const  util = require("util"); 
 /* GET users listing. */
 const GroupsModel = require(__path_models + "groups"); 
+const UsersModel = require(__path_models + "users"); 
 const folderView = "pages/groups/"; 
 const collection = "groups"
 const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all"; 
@@ -30,6 +31,7 @@ router.post('/save(/:id)?', arrayValidationGroups, async (req, res, next) =>  {
   errors =   Array.from(errors.errors); 
  let id =  await utilHelper.getParams(req.body, "id", "");
  let item = await req.body; 
+
  if(id === "" || id === undefined){
    if(errors.length > 0){
     res.render(`${folderView}add`, { title: 'Groups Management - Add', item: item,errors });
@@ -47,10 +49,11 @@ router.post('/save(/:id)?', arrayValidationGroups, async (req, res, next) =>  {
     res.render(`${folderView}add`, { title: 'Groups Management - Edit', item: item,errors });
     return 
    } else {
-    await  GroupsModel.saveItem(id, item,{task: "edit"})
-  .then( (result)=>{ 
-     req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-     res.redirect(`${linkIndex}`);
+    await  GroupsModel.saveItem(id, item,{task: "edit"}).then( (result)=>{ 
+     UsersModel.saveItem(id, item,{task: "change-group-name"}).then(()=>{
+      req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+      res.redirect(`${linkIndex}`);
+    })
   });
 };
    }

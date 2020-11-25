@@ -10,9 +10,14 @@
 
 
             <li>
-                <a href="<%= systemConfig.prefixAdmin %>/items/">
-                    <i class="fa fa-dashboard fa-fw"></i> CRUD
+                <a href="#">
+                    <i class="fa fa-dashboard fa-fw"></i> Manage Items
+                    <span class="fa arrow"> </span>
                 </a>
+                <ul class="nav nav-second-level collpase on" aria-expanded="true">
+                    <li> <a href="<%= systemConfig.prefixAdmin %>/items/"> Items</a> </li>
+                    <li><a href="<%=systemConfig.prefixAdmin %>/categories"> Categories</a></li>
+                </ul>
                 
             </li>
             <li>
