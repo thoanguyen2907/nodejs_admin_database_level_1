@@ -47,3 +47,8 @@ margin: 0 auto;
 img.error-page-img {
     width: 800px;
 }
+.img-thumbnail{
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+}

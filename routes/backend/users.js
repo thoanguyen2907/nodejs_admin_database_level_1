@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+let fs =  require('fs');
 let systemConfig = require(__path_config+ 'system');
 let utilHelper = require(__path_helper + "utilsUsers"); 
 let validateHelper = require(__path_validates + "users"); 
@@ -18,7 +18,6 @@ const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all";
 const arrayValidationUsers = validateHelper.validator(); 
 const uploadFile = utilHelper.uploadFile("avatar")
 
-
 router.get('/form(/:id)?', async (req, res, next) =>  {
   let currentId = await utilHelper.getParams(req.params, "id", ""); 
   let itemDefault = {name: "", ordering: 0, status: "novalue", content: "", group: {id: "undefined", name: ""}};
@@ -33,38 +32,93 @@ router.get('/form(/:id)?', async (req, res, next) =>  {
     res.render(`${folderView}add`, { title: 'Users Management-Add', item: itemDefault, errors, groupItems});
   } else {
     await  UsersModel.getItem(currentId).then(async (itemEdit)=>{
-      console.log("itemEdit", itemEdit);
       res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors, groupItems });
     }); 
   }
 });
-// router.post('/save(/:id)?', arrayValidationUsers, async (req, res, next) =>  {
-//   let errors =  validationResult(req); 
-//   errors =   Array.from(errors.errors);
-// let id =  await utilHelper.getParams(req.body, "id", "");
-//     let item = await req.body;
+
+// router.post('/save(/:id)?', async (req, res, next) =>  {
+//   uploadFile(req,res,(error)=>{
+//     if(error) {
+
+//       console.log(error.message)
+//     }
+//     next()
+//   }) 
+// })
+
+router.post('/save(/:id)?',uploadFile, arrayValidationUsers, async (req, res, next) =>  {
+  let errors =  validationResult(req); 
+  errors =   Array.from(errors.errors);
+ let id =  await utilHelper.getParams(req.body, "id", "");
+    let item = await req.body;
+    let groupItems = [];
+    await GroupsModel.listItemsInSelectbox().then((items)=>{
+      groupItems = items; 
+      groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
+     })
+    if(id == "" || id == undefined){
+      if(errors.length > 0){
+        let group =  {id: item.group, name: item.group_hidden }; 
+        item = {...item,group }
+       res.render(`${folderView}add`, { title: 'Users Management - Add', item,errors,groupItems });
+        return 
+      } else {  
+          item.avatar = req.file.filename;  
+          await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
+          //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
+           req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
+           res.redirect(`${linkIndex}`);
+         });    
+    }}
+    else { 
+      if(errors.length > 0) {
+       res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
+       return 
+      } else {
+        item.avatar = req.file.filename; 
+       await UsersModel.saveItem(id, item,{task: "edit"})
+     .then( async (result)=>{ 
+        req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
+        res.redirect(`${linkIndex}`);
+     });
+   };
+      } 
+})
+
+// router.post('/save(/:id)?', (req, res, next) =>  {
+//    uploadFile(req,res, async  (errUpload)=>{
+//     let id =  await utilHelper.getParams(req.body, "id", "");
+//     let item = await Object.assign(req.body);
 //     let groupItems = [];
 //     await GroupsModel.listItemsInSelectbox().then((items)=>{
 //       groupItems = items; 
-//       groupItems.unshift({_id: "undefined", name: "Choose Group"}); 
+//       groupItems.unshift({_id: "undefined", name: "All Group"}); 
 //      })
+//     let errors =  []; 
+//     if(errUpload) {
+//       errors.push({param: "avatar", msg: errUpload})
+//     }  
+      
 //     if(id == "" || id == undefined){
 //       if(errors.length > 0){
-//         console.log(errors);
-//        res.render(`${folderView}add`, { title: 'Users Management - Add', item: item,errors,groupItems });
+//     if(req.file != undefined)  utilHelper.removeFile("public/upload/users/", req.file.filename)
+//        res.render(`${folderView}add`, { title: 'Users Management - Add', item,errors,groupItems });
 //         return 
 //       } else {   
+//         item.avatar = req.file.filename; 
 //        await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
-//         console.log(item);
 //        //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
 //         req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
 //         res.redirect(`${linkIndex}`);
 //       }); }}
 //     else { 
 //       if(errors.length > 0) {
-//        res.render(`${folderView}add`, { title: 'Users Management - Edit', item: item,errors, groupItems });
+//         if(req.file != undefined)   utilHelper.removeFile("public/upload/users/",req.file.filename) //xoá hình khi form ko hợp lệ 
+//        res.render(`${folderView}add`, { title: 'Users Management - Edit', item,errors, groupItems });
 //        return 
 //       } else {
+//         item.avatar = req.file.filename; 
 //        await UsersModel.saveItem(id, item,{task: "edit"})
 //      .then( async (result)=>{ 
 //         req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
@@ -72,53 +126,9 @@ router.get('/form(/:id)?', async (req, res, next) =>  {
 //      });
 //    };
 //       }
-// })
-router.post('/save(/:id)?', arrayValidationUsers,  (req, res, next) =>  {
-   uploadFile(req,res, async  (errUpload)=>{
-    let id =  await utilHelper.getParams(req.body, "id", "");
-    let item = await Object.assign(req.body);
-    let errors =  validationResult(req); 
-    if(errUpload) {
-      errors.push({param: "avatar", msg: errUpload})
-    }  
-    errors =   Array.from(errors.errors);
-    let group = {id: item.group, name: item.group_hidden}; 
-    item = {...item,group }
-    let groupItems = [];
-    await GroupsModel.listItemsInSelectbox().then((items)=>{
-      groupItems = items; 
-      groupItems.unshift({_id: "undefined", name: "All Group"}); 
-     })   
-    if(id == "" || id == undefined){
-      if(errors.length > 0){
-        console.log("errors", errors);
-       res.render(`${folderView}add`, { title: 'Users Management - Add', item,errors,groupItems });
-        return 
-      } else {   
-       await UsersModel.saveItem(id, item, {task: "add"}).then(()=>{
-       //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
-        req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
-        res.redirect(`${linkIndex}`);
-      }); }}
-    else { 
-      if(errors.length > 0) {
-       res.render(`${folderView}add`, { title: 'Users Management - Edit', item,errors, groupItems });
-       return 
-      } else {
-       await UsersModel.saveItem(id, item,{task: "edit"})
-     .then( async (result)=>{ 
-        req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
-        res.redirect(`${linkIndex}`);
-     });
-   };
-      }
-})  
-  }); 
+// })  
+//   }); 
   
-
-
-
-
 router.get('(/:status)?', async (req, res, next)  => {
 let params =  {}; 
 params.currentStatus = await utilHelper.getParams(req.params, "status", "all"); 

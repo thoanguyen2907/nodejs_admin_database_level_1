@@ -3,6 +3,7 @@ const UsersModel = require(__path_schemas + "users");
 var multer  = require('multer'); 
 var randomstring = require("randomstring"); 
 var path = require('path');
+let fs =  require('fs'); 
 
 let createFilterStatus = async (params) => {
     let statusFilter = [
@@ -72,16 +73,25 @@ const uploadFile = (field, folderDes = "users",fileNameLength = 5, fileSize = 1,
         if(mimetype && extname){
           return callback(null, true);
         }  else {
-          callback(('Only images are allowed')); 
+          
+         return  callback(new Error('Only images are allowed')); 
         }
       },
       limits: {fieldSize: fileSize *  1024 * 1024} }).single(field); 
       return upload; 
+}
+const removeFile = (folder, fileName) => {
+  if(fileName !== "" && fileName != undefined){
+    let path = folder+ fileName; 
+    if(fs.existsSync(path)) fs.unlink(path, (err)=>{ if(err) throw err; })
+  }
+
 }
 
 module.exports = {
     createFilterStatus,
     getParams,
     getObjectFilter,
-    uploadFile
+    uploadFile,
+    removeFile
 }

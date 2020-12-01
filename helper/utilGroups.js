@@ -36,7 +36,7 @@ params.keywordFilter = params.keywordFilter.trim();
         objectFilter  = {} 
      }
  } else if (params.currentStatus !== "all" ){
-     if(keyword !== ""){
+     if(params.keywordFilter !== ""){
         objectFilter = {"status": params.currentStatus, "name": new RegExp(params.keywordFilter, "i")}
      } else {
         objectFilter = {"status": params.currentStatus}

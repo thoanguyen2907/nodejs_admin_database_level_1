@@ -1,6 +1,7 @@
 <%
 const collection = "users";
-const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
+const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"; 
+const folderAvatar = "upload/users/"
 %>
       <div id="page-wrapper">
         <%include ./../../elements/pageTitle%>
@@ -65,6 +66,7 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                                 </th>
                                                 <th>#</th>                                            
                                                     <%- sortHelper(collection, "Name", "name", params.sortField, params.sortType) %>
+                                                    <th>Avatar</th>
                                                     <%- sortHelper(collection, "Status", "status", params.sortField, params.sortType) %>
                                                     <%- sortHelper(collection, "Ordering", "ordering", params.sortField, params.sortType) %>
                                                     <%- sortHelper(collection, "Group", "group", params.sortField, params.sortType) %>
@@ -87,6 +89,7 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                                     <td>
                                                        <%= item.name%>
                                                     </td>
+                                                    <td>  <img src="<%=folderAvatar+item.avatar%>" class="img-thumbnail" alt="<%= item.name%>"> </td>
                                                     <td>                                                               
                                                   
                                                     <%- statusHelper(collection, item) %>

@@ -1,5 +1,6 @@
 const ItemsModel = require(__path_schemas + "users"); 
-
+let utilHelper = require(__path_helper + "utilsUsers"); 
+let fs =  require('fs'); 
 
 module.exports={
     listItems:   (objectFilter, params, options = null) => {
@@ -52,18 +53,30 @@ module.exports={
           return ItemsModel.findByIdAndUpdate(idArray, data, {useFindAndModify: false});    
           }
     },
-    deleteItem: (id, options =  null) => {
+    deleteItem: async (id, options =  null) => {
         if(options.task == "delete-one"){
+            await ItemsModel.findById(id).then((item)=>{
+                utilHelper.removeFile("public/upload/users/", item.avatar)
+ }); 
             return  ItemsModel.deleteOne({_id: id})
         } 
         if(options.task == "delete-many"){
-            return ItemsModel.deleteMany({_id: {$in: id}})
+            if(Array.isArray(id)){
+                for (let i = 0; i < id.length; i ++){
+                    await ItemsModel.findById(id[i]).then((item)=>{
+                        utilHelper.removeFile("public/upload/users/", item.avatar)
+                    });
+                }
+            } else {
+                await ItemsModel.findById(id).then((item)=>{
+                    utilHelper.removeFile("public/upload/users/", item.avatar)
+                  });
+            }
+             return ItemsModel.deleteMany({_id: {$in: id}})
         }
     },
     saveItem : (id, item, options = null) => {
-        
-        let group =  {id: item.group, name: item.group_hidden }; 
-        console.log(group);
+        let group =  {id: item.group, name: item.group_hidden };  
         if(options.task == "add"){
             let created = {
                 user_id: 1, 
