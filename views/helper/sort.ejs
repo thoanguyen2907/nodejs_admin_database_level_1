@@ -1,0 +1,13 @@
+<% sortHelper = (collection, name, sortField, sortFieldCurrent, sortTypeCurrent) =>{ 
+    let order = sortTypeCurrent === "asc"? "desc" : "asc"; 
+    let link = systemConfig.prefixAdmin + "/"+ collection + "/sort/" + sortField+ "/" + order;
+    let icon = '<i class="fa fa-sort"></i>'; 
+    if(sortField === sortFieldCurrent){
+        icon =  sortTypeCurrent === "asc"? '<i class="fa fa-sort-up"></i>': '<i class="fa fa-sort-down"></i>';       
+    } else {
+        icon = '<i class="fa fa-sort"></i>'; 
+    }
+    let xhmlResult  = `<th> <a href="${link}">${name} ${icon}</a> </th>`; 
+
+    return xhmlResult; 
+ } %>

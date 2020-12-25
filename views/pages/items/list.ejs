@@ -17,12 +17,12 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                         <div class="panel-body">
                             <div class="row">
                                 <div class="status-list col-sm-6 pl0">
-                                    <%-  filterStatus("items", statusFilter, keywordFilter) %>
+                                    <%-  filterStatus("items", statusFilter, params.keywordFilter) %>
                                 </div>
                                 <div class="col-sm-6">
-                                    <form action="<%=linkPrefix%><%=currentStatus%>" method="GET">
+                                    <form action="<%=linkPrefix%><%=params.currentStatus%>" method="GET">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" name="keyword" placeholder="Search for..." value="<%=keywordFilter%>">
+                                            <input type="text" class="form-control" name="keyword" placeholder="Search for..." value="<%=params.keywordFilter%>">
                                             <input type="hidden" value="all">
     
                                             <span class="input-group-btn">
@@ -48,19 +48,22 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                         <div class="panel-body">
                             <form role="form" class="form-inline zt-form" id="zt-form" action="" method="post">
                                 <% include ./../../helper/action%>
+                                <% include ./../../helper/sort%>
                                 <%-actionHelper("items")%>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
+                                            
                                                 <th>
                                                     <input type="checkbox" class="cbAll" />
                                                 </th>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Status</th>
-                                                <!-- <th width="30%">Content</th> -->
-                                                <th>Ordering</th>
+                                                <th>#</th>                                            
+                                                    <%- sortHelper(collection, "Name", "name", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Status", "status", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Ordering", "ordering", params.sortField, params.sortType) %>
+                                                <th><i class="fa fa-sort"></i> Created at</th>
+                                                <th><i class="fa fa-sort"></i> Modified at</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -85,6 +88,14 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                                             <td>
                                                                 <input type="number" value= <%= item.ordering %> class="text-center ordering">
                                                             </td>
+                                                            <td>
+                                                                <% include ./../../helper/timeFormat%>
+                                                            
+                                                               <%-timeFormatHelper(item.created.user_name, item.created.time) %>
+                                                            </td>
+                                                                <td>
+                                                                    <%-timeFormatHelper(item.modified.user_name, item.modified.time) %>
+                                                                </td>
                                                             <td>
                                                                 <a href="<%=linkPrefix%>form/<%=item.id%>" type="button" class="btn btn-warning btn-sm">Edit</a>
                                                                 <a href="<%=linkPrefix%>delete/<%=item.id%>" type="button" class="btn btn-danger btn-sm btn-delete">Delete</a>

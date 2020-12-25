@@ -1,0 +1,17 @@
+<% GroupsRenderUsersHelper = (collection, groupItems, groupCurrent = "undefined") => {
+    let xhml = '';  
+    groupItems.forEach((group)=>{
+        let selected = group.id === groupCurrent? 'selected' : ''; 
+        let link = systemConfig.prefixAdmin +  "/" + collection + "/" + group.id; 
+        xhml+= `<option value=${group.id}  ${selected} >${group.name} </option>`
+    })
+   return `
+        <select name=${collection} class="form-control" >
+           ${xhml}
+       </select>
+   `
+} %>
+
+
+
+

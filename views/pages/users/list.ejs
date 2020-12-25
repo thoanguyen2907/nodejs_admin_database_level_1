@@ -1,0 +1,194 @@
+<%
+const collection = "users";
+const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"; 
+const folderAvatar = "upload/users/"
+%>
+      <div id="page-wrapper">
+        <%include ./../../elements/pageTitle%>
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            Search & Filter
+                            <a href="admin123/item">
+                                <span id="icon-reload" class="glyphicon glyphicon-refresh"></span>
+                            </a>
+                        </div>
+                  
+                        <% include ./../../helper/statusFilter%>
+                        <% include ./../../helper/groups-render-users%>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="status-list col-sm-5 pl0">
+                                    <%-  filterStatus(collection, statusFilter, params.keywordFilter) %>
+                                </div>
+                                <div class="status-list col-sm-2 pl0">
+                                    <%-GroupsRenderUsersHelper("filter_group", groupItems, params.groupID)  %>
+                                </div>
+                                
+                                <div class="col-sm-5">
+                                    <form action="<%=linkPrefix%><%=params.currentStatus%>" method="GET">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="keyword" placeholder="Search for..." value="<%=params.keywordFilter%>">
+                                            <input type="hidden" value="all">
+    
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-info" type="submit">Search</button>
+                                            </span>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-success" type="button"><a href="<%=linkPrefix%>">Clear</a></button>
+                                            </span>
+                                        </div>
+                                    </form>
+    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             <div class="col-lg-12">    
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            List Items
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <form role="form" class="form-inline zt-form" id="zt-form" action="" method="post">
+                                <% include ./../../helper/action%>
+                                <% include ./../../helper/sort%>
+                                <%-actionHelper(collection)%>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>                                           
+                                                <th>
+                                                    <input type="checkbox" class="cbAll" />
+                                                </th>
+                                                <th>#</th>                                            
+                                                    <%- sortHelper(collection, "Name", "name", params.sortField, params.sortType) %>
+                                                    <th>Avatar</th>
+                                                    <%- sortHelper(collection, "Status", "status", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Ordering", "ordering", params.sortField, params.sortType) %>
+                                                    <%- sortHelper(collection, "Group", "group", params.sortField, params.sortType) %>
+                                                <th><i class="fa fa-sort"></i> Created at</th>
+                                                <th><i class="fa fa-sort"></i> Modified at</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>   
+                                            <% include ./../../helper/status%>   
+                                        
+                                                <% items.forEach((item, index) => {%>
+                                                    <tr>
+                                                    <td>
+                                                        <input type="checkbox" name="cid" value= <%= item.id %> />
+                                                    </td>
+                                                    <td>
+                                                        <%= index + 1 %>
+                                                    </td>
+                                                    <td>
+                                                       <%= item.name%>
+                                                    </td>
+                                                    <td>  <img src="<%=folderAvatar+item.avatar%>" class="img-thumbnail" alt="<%= item.name%>"> </td>
+                                                    <td>                                                               
+                                                  
+                                                    <%- statusHelper(collection, item) %>
+                                                    </td>
+                                                    <td>
+                                                        <input type="number" value= <%= item.ordering %> class="text-center ordering">
+                                                    </td>
+                                                    <td>
+                                                      <%= item.group.name %> 
+                                                    </td>
+                                                    <td>
+                                                        <% include ./../../helper/timeFormat%>                                                    
+                                                       <%-timeFormatHelper(item.created.user_name, item.created.time) %>
+                                                    </td>
+                                                        <td>
+                                                            <%-timeFormatHelper(item.modified.user_name, item.modified.time) %>
+                                                        </td>
+                                                    <td>
+                                                        <a href="<%=linkPrefix%>form/<%=item.id%>" type="button" class="btn btn-warning btn-sm">Edit</a>
+                                                        <a href="<%=linkPrefix%>delete/<%=item.id%>" type="button" class="btn btn-danger btn-sm btn-delete">Delete</a>
+                                                    </td>
+                                                </tr>
+                                               <% }) %>
+                              
+                                                
+                                        </tbody>              
+                                     </table>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="col-lg-12">
+                    <div class="panel panel-info" id="pagination">
+                        <div class="panel-heading">
+                            Pagination
+                            <span>^</span>
+                            <span class="label label-warning">Total pages: 0</span>
+                            <span class="label label-danger">Total entries: 0</span>
+                        </div>
+    
+                        <div class="panel-body">
+                            <div class="infor-pagination">
+                                
+                                
+                                <p>Number of elements on the page: <span>0</span></p>
+                                
+                                <p>Showing <span> 0 </span> to <span>0</span> of <span>0</span> entries</p>
+                            </div>
+                            <div class="ad-pagination">
+                                
+    
+                                
+    
+        
+            <ul class="pagination text-center">
+                
+                    <li class="disabled"><a>«</a></li>
+                
+                
+                
+                
+                    
+                        <li><a href="admin123/item/page=1">1</a></li>
+                    
+                    
+                
+                    
+                        <li class="active"><a>2</a></li>
+                    
+                    
+                
+                    
+                        <li><a href="admin123/item/page=3">3</a></li>
+                    
+                    
+                
+                    
+                        <li><a href="admin123/item/page=4">4</a></li>
+                    
+                    
+                
+                    
+                        <li><a href="admin123/item/page=5">5</a></li>
+                    
+                    
+                
+                
+                    <li><a href="admin123/item/page=0">»</a></li>
+                
+            </ul>
+        
+    
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+     </div>   
+        
+

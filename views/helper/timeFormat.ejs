@@ -1,0 +1,5 @@
+<% timeFormatHelper = (username, time) =>{ 
+    let xhmlResult  = `<span>${username}</span>  <br/>
+    <span>${ moment(time).format(systemConfig.format_long_time)} </span>`;  
+ return xhmlResult; 
+     } %>
