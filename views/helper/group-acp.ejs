@@ -1,0 +1,11 @@
+
+<% groupACPHelper = (collection,item) =>{ %>
+    <%  if(item.group_acp == "yes"){ %>
+          <a href="<%=systemConfig.prefixAdmin%>/<%=collection%>/change-group/<%= item.group_acp %>/<%= item.id %>">               
+              <span class="fa fa-check-square-o fa-lg"> </span></a>  
+      <%} else {%>
+        <a href="<%=systemConfig.prefixAdmin%>/<%=collection%>/change-group/<%= item.group_acp %>/<%= item.id %>">               
+              <span class="fa fa-square-o fa-lg"> </span></a>  
+     <% } %>
+     
+  <% } %>

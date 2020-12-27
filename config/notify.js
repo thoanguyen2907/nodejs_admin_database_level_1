@@ -13,4 +13,8 @@
         ERROR_NAME_VALIDATION:  "Must be at least %d chars long",
         ERROR_ORDERING_VALIDATION: "Must be an integer number", 
         ERROR_STATUS_VALIDATION: "Must select a status option", 
+        ERROR_GROUP_ACP: "Must choose a group option", 
+        CONTENT_ERROR: "Content is not empty and length must be from 20", 
+        CHANGE_GROUP_SUCCESS: "Update Group ACP Successfully !!", 
+        ERROR_GROUP_USERS: "Please choose a group name!!", 
     }
