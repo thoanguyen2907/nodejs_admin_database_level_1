@@ -48,19 +48,22 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                         <div class="panel-body">
                             <form role="form" class="form-inline zt-form" id="zt-form" action="" method="post">
                                 <% include ./../../helper/action%>
+                                <% include ./../../helper/sort%>
                                 <%-actionHelper("items")%>
                                 <div class="table-responsive">
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
+                                            
                                                 <th>
                                                     <input type="checkbox" class="cbAll" />
                                                 </th>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Status</th>
-                                                <!-- <th width="30%">Content</th> -->
-                                                <th>Ordering</th>
+                                                <th>#</th>                                            
+                                                    <%- sortHelper(collection, "Name", "name", sortField, sortType) %>
+                                                    <%- sortHelper(collection, "Status", "status", sortField, sortType) %>
+                                                    <%- sortHelper(collection, "Ordering", "ordering", sortField, sortType) %>
+                                                <th><i class="fa fa-sort"></i> Created at</th>
+                                                <th><i class="fa fa-sort"></i> Modified at</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -85,6 +88,14 @@ const linkPrefix  = systemConfig.prefixAdmin + "/" + collection + "/"
                                                             <td>
                                                                 <input type="number" value= <%= item.ordering %> class="text-center ordering">
                                                             </td>
+                                                            <td>
+                                                                <% include ./../../helper/timeFormat%>
+                                                            
+                                                               <%-timeFormatHelper(item.created.user_name, item.created.time) %>
+                                                            </td>
+                                                                <td>
+                                                                    <%-timeFormatHelper(item.modified.user_name, item.modified.time) %>
+                                                                </td>
                                                             <td>
                                                                 <a href="<%=linkPrefix%>form/<%=item.id%>" type="button" class="btn btn-warning btn-sm">Edit</a>
                                                                 <a href="<%=linkPrefix%>delete/<%=item.id%>" type="button" class="btn btn-danger btn-sm btn-delete">Delete</a>

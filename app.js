@@ -6,7 +6,8 @@ var logger = require('morgan');
 var expressLayouts = require('express-ejs-layouts');
 const mongoose = require('mongoose');
 const flash = require('express-flash-notification');
-var session = require('express-session')
+var session = require('express-session'); 
+var moment = require('moment'); 
 const db = mongoose.connection;
 
 mongoose.connect("mongodb+srv://thanhthoa:Alice2907%40@nodjesapi.hq6qd.mongodb.net/nodejs_trainiing_2?retryWrites=true&w=majority", {useNewUrlParser: true, useUnifiedTopology: true}); 
@@ -19,6 +20,7 @@ global.__path_schemas = __base + "schemas/";
 global.__path_validates = __base + "validates/";  
 global.__path_views = __base + "views/";  
 global.__path_public = __base + "public/"; 
+global.__path_models = __base + "models/"; 
 
 var indexRouter = require(__path_routes +   'backend/index');
 var app = express();
@@ -59,6 +61,8 @@ app.use(flash(app));
 
 //local variable 
 app.locals.systemConfig = systemConfig; 
+//local variable moment
+app.locals.moment = moment; 
 
 //setup router 
 app.use(`/${systemConfig.prefixAdmin}`, indexRouter);

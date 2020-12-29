@@ -1,10 +1,12 @@
+ CKEDITOR.replace('content_ckeditor');
+
 $(document).ready(function () {
     var ckbAll = $(".cbAll");
     var fmAdmin = $("#zt-form");
 
     // CKEDITOR
-    if ($('textarea#content_ck').length) {
-        CKEDITOR.replace('content_ck');
+    if ($('textarea#content_ckeditor').length) {
+        CKEDITOR.replace('content_ckeditor');
     }
 
     //call active menu
@@ -127,3 +129,25 @@ $(document).ready(function () {
         })    
     }
 });
+
+let groupHidden = document.getElementById("group_hidden"); 
+let selectGroupName = document.querySelector('select[name="group"]'); 
+if(selectGroupName) {
+    selectGroupName.addEventListener("change", ()=>{
+        let selectedGroupName = selectGroupName.options[selectGroupName.selectedIndex].innerHTML; 
+        groupHidden.value  = selectedGroupName
+}); 
+}
+
+let selectFilterGroup = document.querySelector('select[name="filter_group"]');
+
+if(selectFilterGroup){
+    selectFilterGroup.addEventListener("change", ()=>{
+    let path = window.location.pathname.split("/"); 
+    let selectedGroupVal = selectFilterGroup.value; 
+    let linkRedirect = "/" + path[1] + "/" + path[2] + "/filter-group/" +  selectedGroupVal; 
+      window.location.pathname =   linkRedirect;
+    }); 
+}
+
+

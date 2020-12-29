@@ -8,7 +8,7 @@ const { body, validationResult } = require('express-validator');
 const flash = require('express-flash-notification');
 const  util = require("util"); 
 /* GET users listing. */
-const ItemsModel = require(__path_schemas + "items"); 
+const ItemsModel = require(__path_models + "items"); 
 const folderView = "pages/items/"; 
 const collection = "items"
 const linkIndex = "/" + systemConfig.prefixAdmin + "/"+ collection +"/all"; 
@@ -16,15 +16,14 @@ const arrayValidationItems = validateHelper.validator();
 
 router.get('/form(/:id)?', async (req, res, next) =>  {
   let currentId = await utilHelper.getParams(req.params, "id", ""); 
-  let itemDefault = {name: "", ordering: 0, status: "novalue"};
+  let itemDefault = {name: "", ordering: 0, status: "novalue", content: ""};
   let errors = [];
   if(currentId === undefined || currentId === ""){
     res.render(`${folderView}add`, { title: 'Items Management-Add', item: itemDefault, errors});
   } else {
     await  ItemsModel.findById(currentId, async (err, itemEdit)=>{
       res.render(`${folderView}add`, { title: 'Items Management - Edit', item: itemEdit, errors });
-     }) 
-  }
+     })   }
 });
 router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
   let errors =  validationResult(req); 
@@ -36,6 +35,13 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
     res.render(`${folderView}add`, { title: 'Items Management - Add', item: item,errors });
      return 
    } else {
+    let created = {
+      user_id: 1, 
+      user_name: "Thoa Nguyen admin", 
+      time: Date.now()
+    }
+    let content = item.content; 
+    item = {...item, created: created, content}; 
   await new ItemsModel(item).save((error, result)=>{
     //ko có lỗi thì lưu item trong database, setTimeout tránh bđb
      req.flash("success", notify.ADD_ITEM_SUCCESS, false); 
@@ -48,6 +54,13 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
     res.render(`${folderView}add`, { title: 'Items Management - Edit', item: item,errors });
     return 
    } else {
+    let modified = {
+      user_id: 2, 
+      user_name: "Truc Nguyen admin", 
+      time: Date.now()
+    }
+    let content = item.content;
+    item = {...item, modified: modified, content}; 
   await ItemsModel.updateOne({_id: id}, item, {new: true})
   .then( async (result)=>{ 
      req.flash("success", notify.EDIT_ITEM_SUCCESS, false); 
@@ -58,17 +71,26 @@ router.post('/save(/:id)?', arrayValidationItems, async (req, res, next) =>  {
 })
 
 router.get('(/:status)?', async (req, res, next)  => {
+let params = {}; 
 let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
 let statusFilter =  await utilHelper.createFilterStatus(currentStatus); 
 let keywordFilter = await utilHelper.getParams(req.query, "keyword", "");
 let objectFilter =  await utilHelper.getObjectFilter(currentStatus, keywordFilter); 
-  await ItemsModel.find(objectFilter)
-      .then((items)=>{
+let  sortField = await utilHelper.getParams(req.session, "sortField", "ordering");
+let  sortType =  await utilHelper.getParams(req.session, "sortType", "desc");
+let sort    = {};
+sort[sortField] = sortType; 
+  await ItemsModel
+          .find(objectFilter)
+          .sort(sort)
+          .then((items)=>{
           res.render(`${folderView}list`, { title: 'Items Management List', 
           items: items,
           statusFilter, 
           currentStatus,
-          keywordFilter });
+          keywordFilter,
+          sortField,
+          sortType });
 
            
 });
@@ -77,8 +99,16 @@ let objectFilter =  await utilHelper.getObjectFilter(currentStatus, keywordFilte
 //change multi status 
     router.post('/change-status/:status', async (req, res, next)  => {
   let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
-  let idArray = req.body.cid
-      await ItemsModel.updateMany({_id: {$in: idArray}}, {"status": currentStatus})
+  let idArray = req.body.cid;
+  let data = {
+    status: currentStatus, 
+    modified: {
+      user_id: 2, 
+      user_name: "Truc Nguyen admin", 
+      time: Date.now()
+    }
+  }
+      await ItemsModel.updateMany({_id: {$in: idArray}}, data )
       .then((result)=>{
         req.flash("success", util.format(notify.CHANGE_MULTI_ITEMS_SUCCESS, result.n), false); 
         res.redirect(`${linkIndex}`);   
@@ -91,7 +121,15 @@ let objectFilter =  await utilHelper.getObjectFilter(currentStatus, keywordFilte
       let currentStatus = await utilHelper.getParams(req.params, "status", "all");  
       let currentID = await utilHelper.getParams(req.params, "id", ""); 
       currentStatus = currentStatus === "active"? "inactive" :  "active"; 
-      await ItemsModel.updateOne({_id: currentID}, {status:currentStatus },  {new: true})
+      let data = {
+        status: currentStatus, 
+        modified: {
+          user_id: 2, 
+          user_name: "Truc Nguyen admin", 
+          time: Date.now()
+        }
+      }
+      await ItemsModel.updateOne({_id: currentID}, data,  {new: true})
       .then( (result)=>{
         req.flash("success", notify.CHANGE_STATUS_SUCCESS, false); 
           res.redirect(`${linkIndex}`);
@@ -132,16 +170,37 @@ router.post('/change-ordering/', async  (req, res, next)  => {
   let ordering = req.body.ordering; 
   if(Array.isArray(idArray)){
     idArray.forEach(async (item, index)=>{
-      await ItemsModel.findByIdAndUpdate(item, {"ordering": parseInt(ordering[index])}, {useFindAndModify: false});
+      let data = {
+        ordering: parseInt(ordering[index]), 
+        modified: {
+          user_id: 2, 
+          user_name: "Truc Nguyen admin", 
+          time: Date.now()
+        }
+      }
+      await ItemsModel.findByIdAndUpdate(item, data, {useFindAndModify: false});
         req.flash("success", notify.CHANGE_ORDERING_MULTI_ITEMS_SUCCESS, result.n, false); 
     }) 
   } else {
-
-    await  ItemsModel.findByIdAndUpdate(idArray, {"ordering": parseInt(ordering)}, {useFindAndModify: false});
+    let data = {
+      ordering: parseInt(ordering), 
+      modified: {
+        user_id: 2, 
+        user_name: "Truc Nguyen admin", 
+        time: Date.now()
+      }
+    }
+    await  ItemsModel.findByIdAndUpdate(idArray, data, {useFindAndModify: false});
     req.flash("success", notify.CHANGE_ORDERING_SUCCESS, false); 
   }
   res.redirect(`${linkIndex}`);
   }); 
-  
+  //sort item
+  router.get('/sort/:sortField/:sortType', async (req, res, next)  => {  
+    req.session.sortField   = await utilHelper.getParams(req.params, "sortField", "ordering");
+    req.session.sortType   = await utilHelper.getParams(req.params, "sortType", "asc");
+    res.redirect(linkIndex)
+   }); 
+
 
 module.exports = router;
